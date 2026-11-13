@@ -1,6 +1,8 @@
 package com.example.back_end.model;
 
 import java.math.BigDecimal;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,27 +19,32 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer quantity;
-
-    private BigDecimal price;
-
-    // Relationship with Order
     @ManyToOne
-    @JoinColumn(name = "customer_order_id")
-    private CustomerOrder CustomerOrder;
+    @JoinColumn(name = "order_id", nullable = false)
+    private CustomerOrder customerOrder;
 
-    // Relationship with Product
     @ManyToOne
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    // Getters and Setters
+    @Column(nullable = false)
+    private Integer quantity;
+
+    // Snapshots preserve the purchased details if the product changes later.
+    @Column(name = "product_sku", nullable = false)
+    private String productSku;
+
+    @Column(name = "product_name", nullable = false)
+    private String productName;
+
+    @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
+    private BigDecimal unitPrice;
+
+    @Column(name = "line_total", nullable = false, precision = 12, scale = 2)
+    private BigDecimal lineTotal;
+
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getQuantity() {
@@ -48,20 +55,12 @@ public class OrderItem {
         this.quantity = quantity;
     }
 
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
     public CustomerOrder getCustomerOrder() {
-        return CustomerOrder;
+        return customerOrder;
     }
 
-    public void setCustomerOrder(CustomerOrder CustomerOrder) {
-        this.CustomerOrder = CustomerOrder;
+    public void setCustomerOrder(CustomerOrder customerOrder) {
+        this.customerOrder = customerOrder;
     }
 
     public Product getProduct() {
@@ -70,5 +69,37 @@ public class OrderItem {
 
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    public String getProductSku() {
+        return productSku;
+    }
+
+    public void setProductSku(String productSku) {
+        this.productSku = productSku;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public BigDecimal getLineTotal() {
+        return lineTotal;
+    }
+
+    public void setLineTotal(BigDecimal lineTotal) {
+        this.lineTotal = lineTotal;
     }
 }
