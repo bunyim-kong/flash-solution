@@ -1,5 +1,7 @@
 package com.example.back_end.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,7 +19,7 @@ public class CustomerOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int order_number;
+    private String order_number;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -25,8 +27,8 @@ public class CustomerOrder {
 
     private String status;
 
-    @Column (name="total_amount")
-    private double total_amount;
+    @Column(name = "total_amount", precision = 12, scale = 2)
+    private BigDecimal total_amount;
 
     @Column (name="customer_name")
     private String customer_name;
@@ -34,8 +36,8 @@ public class CustomerOrder {
     @Column (name="customer_email")
     private String customer_email;
 
-    @Column (name="phone_number")
-    private int phone_number;
+    @Column(name = "phone_number")
+    private String phone_number;
 
     private String address;
 
@@ -50,7 +52,7 @@ public class CustomerOrder {
     }
 
     @Column (name="order_number")
-    public int getOrderNumber() {
+    public String getOrderNumber() {
         return order_number;
     }
 
@@ -62,7 +64,7 @@ public class CustomerOrder {
         return status;
     }
 
-    public double getTotalAmount() {
+    public BigDecimal getTotalAmount() {
         return total_amount;
     }
 
@@ -74,7 +76,7 @@ public class CustomerOrder {
         return customer_email;
     }
 
-    public int getPhoneNumber() {
+    public String getPhoneNumber() {
         return phone_number;
     }
 

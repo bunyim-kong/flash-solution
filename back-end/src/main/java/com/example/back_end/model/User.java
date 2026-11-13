@@ -1,5 +1,7 @@
 package com.example.back_end.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,7 +22,9 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    private String password;
+    @JsonIgnore
+    @Column(name = "password")
+    private String passwordHash;
 
     private String role;
 
@@ -37,7 +41,7 @@ public class User {
     }
 
     public String getPasswordHash() {
-        return password;
+        return passwordHash;
     }
 
     public String getRole() {
