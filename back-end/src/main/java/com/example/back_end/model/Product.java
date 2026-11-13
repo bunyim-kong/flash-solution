@@ -1,5 +1,7 @@
 package com.example.back_end.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -34,7 +36,8 @@ public class Product {
     private ProductStatus product_status = ProductStatus.AVAILABLE;
     //
 
-    private Integer price;
+    @Column(precision = 12, scale = 2)
+    private BigDecimal price;
 
     private Integer stock;
 
@@ -69,7 +72,7 @@ public class Product {
     }
     //
 
-    public Integer getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
