@@ -24,6 +24,10 @@ public class Product {
     @ManyToOne
     @JoinColumn (name = "brand_id")
     private Brand brand;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
     //
 
     private String name;
@@ -54,6 +58,14 @@ public class Product {
 
     public void setBrand(Brand brand) {
         this.brand = brand;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
     //
 
