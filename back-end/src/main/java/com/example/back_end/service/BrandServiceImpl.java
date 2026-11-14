@@ -43,7 +43,7 @@ public class BrandServiceImpl implements BrandService {
     @Override
     public Brand getBrandById(Long id) {
         return brandRepository.findById(id).orElseThrow(() ->
-            new NoSuchElementException("Brand with ID" + id + "was not found"));
+            new NoSuchElementException("Brand with Id " + id + " was not found"));
     }
     //
 
@@ -79,7 +79,7 @@ public class BrandServiceImpl implements BrandService {
             throw new IllegalArgumentException("A Brand with " + name + " already exist");
         }
 
-        if (!slug.equals(oldSlug) && brandRepository.existsByNameIgnoreCase(slug)) {
+        if (!slug.equals(oldSlug) && brandRepository.existsBySlugIgnoreCase(slug)) {
             throw new IllegalArgumentException("A Brand with " + slug +" already exist");
         }
     }
