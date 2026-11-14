@@ -1,36 +1,34 @@
 package com.example.back_end.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "categories")
+@Table (name = "categories")
 public class Category {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String slug;
-
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     private String name;
 
-    private String description;
+    @Column(nullable = false, unique = true, length = 100)
+    private String slug;
 
-    @Column(nullable = false)
-    private boolean active = true;
+    @Column(nullable = false, unique = true, length = 100)
+    private String des;
 
     public Long getId() {
         return id;
     }
 
-    public String getSlug() {
-        return slug;
-    }
-
-    public void setSlug(String slug) {
-        this.slug = slug;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -41,19 +39,19 @@ public class Category {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public String getSlug() {
+        return slug;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
-    public boolean isActive() {
-        return active;
+    public String getDes() {
+        return des;
     }
 
-    public void setActive(boolean active) {
-        this.active = active;
+    public void setDes(String des) {
+        this.des = des;
     }
 }
