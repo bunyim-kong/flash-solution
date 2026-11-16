@@ -5,4 +5,9 @@ import com.example.back_end.model.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    boolean existsByNameIgnoreCase(String name);
+
+    boolean existsByEmailIgnoreCase(String email);
+
+    boolean existsByRoleIgnoreCase(String role);
 }
