@@ -9,6 +9,5 @@ import com.example.back_end.model.CustomerOrder;
 @Service 
 public interface CustomerOrderService {
     List<CustomerOrder> getAllOrder();
-
-    CustomerOrder createOrder();
+    
 }

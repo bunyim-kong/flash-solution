@@ -22,10 +22,4 @@ public class CustomerOrderServiceImpl implements  CustomerOrderService{
         return repository.findAll();
     }
 
-    //create
-    @Override 
-    public CustomerOrder createOrder(CustomerOrder order){
-        return repository.save(order);
-    }
-
 }
