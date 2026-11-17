@@ -1,25 +1,109 @@
 package com.example.back_end.service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.back_end.model.CustomerOrder;
+import com.example.back_end.model.User;
 import com.example.back_end.repository.CustomerOrderRepository;
+import com.example.back_end.repository.UserRepository;
 
-@Service 
+@Service
+@Transactional(readOnly = true)
 public class CustomerOrderServiceImpl implements  CustomerOrderService{
 
     private final CustomerOrderRepository repository;
-    
-    public CustomerOrderServiceImpl(CustomerOrderRepository repository){
-        this.repository = repository; 
+    private final UserRepository userRepository;
+
+    public CustomerOrderServiceImpl(CustomerOrderRepository repository, UserRepository userRepository){
+        this.repository = repository;
+        this.userRepository = userRepository;
     }
 
-    //read
+    //get all data from database
     @Override 
     public List<CustomerOrder> getAllOrder(){
         return repository.findAll();
     }
 
+    //find data by id
+    @Override
+    @Transactional
+    public CustomerOrder findCustomerOrderById(Long id){
+        return repository.findById(id).orElseThrow(() -> new NoSuchElementException("Order " + id + " was not found"));
+    }
+
+    //create data
+    @Override
+    @Transactional
+    public CustomerOrder createCustomerOrder(CustomerOrder customerOrder, Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User " + userId + " was not found"));
+        customerOrder.setUser(user);
+
+        customerOrder.setOrderNumber(text(customerOrder.getOrderNumber()));
+        customerOrder.setStatus(text(customerOrder.getStatus()));
+        customerOrder.setTotalAmount(decimal(customerOrder.getTotalAmount()));
+        customerOrder.setCustomerName(text(customerOrder.getCustomerName()));
+        customerOrder.setCustomerEmail(text(customerOrder.getCustomerEmail()));
+        customerOrder.setPhoneNumber(text(customerOrder.getPhoneNumber()));
+        customerOrder.setMapLink(text(customerOrder.getMapLink()));
+        customerOrder.setPaymentMethod(text(customerOrder.getPaymentMethod()));
+
+        return repository.save(customerOrder);
+    }
+
+    //delete the data by id
+    @Override
+    @Transactional
+    public void deleteById(Long id ){
+        repository.delete(findCustomerOrderById(id));
+    }
+
+    @Override
+    @Transactional
+    public CustomerOrder updateCustmOrder(Long id, CustomerOrder customerOrder){
+
+        CustomerOrder existing = findCustomerOrderById(id);
+
+        String order_number = text(customerOrder.getOrderNumber());
+        String status = text(customerOrder.getStatus());
+        BigDecimal total_amount = decimal(customerOrder.getTotalAmount());
+        String customer_name = text(customerOrder.getCustomerName());
+        String customer_email = text(customerOrder.getCustomerEmail());
+        String phone_number = text(customerOrder.getPhoneNumber());
+        String map_link = text(customerOrder.getMapLink());
+        String payment_method = text(customerOrder.getPaymentMethod());
+
+        existing.setOrderNumber(order_number);
+        existing.setStatus(status);
+        existing.setTotalAmount(total_amount);
+        existing.setCustomerName(customer_name);
+        existing.setCustomerEmail(customer_email);
+        existing.setPhoneNumber(phone_number);
+        existing.setMapLink(map_link);
+        existing.setPaymentMethod(payment_method);
+
+        return repository.save(existing);
+    }
+
+    private String text(String value){
+        if(value == null || value.isBlank()){
+            throw new IllegalArgumentException("require");
+        }
+        return value.trim();
+    }
+
+    private BigDecimal decimal(BigDecimal amount) {
+
+        if (amount == null || amount.compareTo(BigDecimal.ZERO ) <= 0) {
+            throw new IllegalArgumentException("Total amount is required");
+        }
+
+        return amount;
+    }
 }

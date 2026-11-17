@@ -19,6 +19,7 @@ public class CustomerOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "order_number", nullable = false)
     private String order_number;
 
     @ManyToOne
@@ -30,28 +31,28 @@ public class CustomerOrder {
     @Column(name = "total_amount", precision = 12, scale = 2)
     private BigDecimal total_amount;
 
-    @Column (name="customer_name")
+    @Column (name="customer_name", nullable = false, length = 30)
     private String customer_name;
 
-    @Column (name="customer_email")
+    @Column (name="customer_email", nullable = false)
     private String customer_email;
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", length = 10, nullable = false)
     private String phone_number;
 
+    @Column (nullable = false)
     private String address;
 
-    @Column (name="map_link")
+    @Column (name="map_link", nullable = false)
     private String map_link;
 
-    @Column (name="payment_method")
+    @Column (name="payment_method", nullable = false)
     private String payment_method;
 
     public Long getId() {
         return id;
     }
 
-    @Column (name="order_number")
     public String getOrderNumber() {
         return order_number;
     }
@@ -90,5 +91,49 @@ public class CustomerOrder {
 
     public String getPaymentMethod() {
         return payment_method;
+    }
+
+    public void setId(Long id){
+        this.id = id;
+    }
+    
+    public void setOrderNumber(String order_number){
+        this.order_number = order_number;
+    }
+
+    public void setUser(User user){
+        this.user = user;
+    }
+
+    public void setStatus(String status){
+        this.status = status;
+    }
+
+    public void setTotalAmount(BigDecimal total_amount){
+        this.total_amount = total_amount;
+    }
+
+    public void setCustomerName(String customer_name){
+        this.customer_name = customer_name;
+    }
+
+    public void setCustomerEmail(String customer_email){
+        this.customer_email = customer_email;
+    }
+
+    public void setPhoneNumber(String phone_number){
+        this.phone_number = phone_number;
+    }
+
+    public void setAddress(String address){
+        this.address = address;
+    }
+
+    public void setMapLink(String map_link){
+        this.map_link = map_link;
+    }
+
+    public void setPaymentMethod(String payment_method){
+        this.payment_method = payment_method;
     }
 }
