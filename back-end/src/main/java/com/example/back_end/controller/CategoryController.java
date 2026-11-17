@@ -5,48 +5,51 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.back_end.model.Brand;
-import com.example.back_end.service.BrandService;
+import com.example.back_end.model.Category;
+import com.example.back_end.service.CategoryService;
 
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
 
-    private final BrandService brandService;
+    private final CategoryService categoryService;
 
-    public CategoryController(BrandService brandService) {
-        this.brandService = brandService;
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
     }
 
     // CREATE
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Brand create(@RequestBody Brand brand) {
-        return brandService.createBrand(brand);
+    public Category create(@RequestBody Category category) {
+        return categoryService.createCategory(category);
     }
 
-    // READ (all)
+    // READ ALL
     @GetMapping
-    public List<Brand> getAll() {
-        return brandService.getAllBrands();
+    public List<Category> getAll() {
+        return categoryService.getAllCategories();
     }
 
-    // READ (one)
+    // READ BY ID
     @GetMapping("/{id}")
-    public Brand getById(@PathVariable Long id) {
-        return brandService.getBrandById(id);
+    public Category getById(@PathVariable Long id) {
+        return categoryService.getCategoryById(id);
     }
 
     // UPDATE
     @PutMapping("/{id}")
-    public Brand update(@PathVariable Long id, @RequestBody Brand brand) {
-        return brandService.updateBrand(id, brand);
+    public Category update(
+            @PathVariable Long id,
+            @RequestBody Category category) {
+
+        return categoryService.updateCategory(id, category);
     }
 
     // DELETE
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
-        brandService.deleteBrand(id);
+        categoryService.deleteCategory(id);
     }
 }
