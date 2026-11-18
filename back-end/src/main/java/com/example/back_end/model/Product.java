@@ -44,7 +44,7 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "image_url", length = 2048)
+    @Column(name = "image_url", nullable = true, length = 2048)
     private String imageUrl;
 
     @Column(nullable = false)
@@ -78,6 +78,10 @@ public class Product {
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getSku() {
