@@ -2,12 +2,17 @@ package com.example.back_end.service;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
 import com.example.back_end.model.CustomerOrder;
 
-@Service 
 public interface CustomerOrderService {
     List<CustomerOrder> getAllOrder();
-    
+
+    CustomerOrder findCustomerOrderById(Long id);
+
+    CustomerOrder updateCustmOrder(Long id, CustomerOrder customerOrder);
+
+    void deleteById(Long id);
+
+    CustomerOrder createCustomerOrder(CustomerOrder customerOrder, Long userId);
+
 }

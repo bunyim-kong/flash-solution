@@ -79,7 +79,7 @@ public class BrandServiceImpl implements BrandService {
             throw new IllegalArgumentException("A Brand with " + name + " already exist");
         }
 
-        if (!slug.equals(oldSlug) && brandRepository.existsByNameIgnoreCase(slug)) {
+        if (!slug.equals(oldSlug) && brandRepository.existsBySlugIgnoreCase(slug)) {
             throw new IllegalArgumentException("A Brand with " + slug +" already exist");
         }
     }

@@ -2,11 +2,12 @@ spring:
   application:
     name: back-end
   datasource:
-    url: jdbc:mysql://localhost:3306/lumiere_db
-    username: user
-    password: user@12345
+    url: ${DB_URL:jdbc:mysql://localhost:3306/lumiere_db}
+    username: ${DB_USERNAME:user}
+    password: ${DB_PASSWORD:}
 
   jpa:
+    open-in-view: false
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:false}
