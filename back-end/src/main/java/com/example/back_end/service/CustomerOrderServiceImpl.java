@@ -41,8 +41,13 @@ public class CustomerOrderServiceImpl implements  CustomerOrderService{
     @Override
     @Transactional
     public CustomerOrder createCustomerOrder(CustomerOrder customerOrder, Long userId){
+        if (customerOrder == null) {
+            throw new IllegalArgumentException("Order details are required");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User " + userId + " was not found"));
+        customerOrder.setId(null);
         customerOrder.setUser(user);
 
         String order_number = text(customerOrder.getOrderNumber());
@@ -55,6 +60,7 @@ public class CustomerOrderServiceImpl implements  CustomerOrderService{
         customerOrder.setCustomerName(text(customerOrder.getCustomerName()));
         customerOrder.setCustomerEmail(text(customerOrder.getCustomerEmail()));
         customerOrder.setPhoneNumber(text(customerOrder.getPhoneNumber()));
+        customerOrder.setAddress(text(customerOrder.getAddress()));
         customerOrder.setMapLink(text(customerOrder.getMapLink()));
         customerOrder.setPaymentMethod(text(customerOrder.getPaymentMethod()));
 
@@ -85,6 +91,7 @@ public class CustomerOrderServiceImpl implements  CustomerOrderService{
         String customer_name = text(customerOrder.getCustomerName());
         String customer_email = text(customerOrder.getCustomerEmail());
         String phone_number = text(customerOrder.getPhoneNumber());
+        String address = text(customerOrder.getAddress());
         String map_link = text(customerOrder.getMapLink());
         String payment_method = text(customerOrder.getPaymentMethod());
 
@@ -94,6 +101,7 @@ public class CustomerOrderServiceImpl implements  CustomerOrderService{
         existing.setCustomerName(customer_name);
         existing.setCustomerEmail(customer_email);
         existing.setPhoneNumber(phone_number);
+        existing.setAddress(address);
         existing.setMapLink(map_link);
         existing.setPaymentMethod(payment_method);
 

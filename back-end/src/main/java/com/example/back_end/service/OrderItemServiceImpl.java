@@ -10,13 +10,14 @@ import com.example.back_end.repository.CustomerOrderRepository;
 import com.example.back_end.repository.ProductRepository;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.math.BigDecimal;
 
 @Service
+@Transactional(readOnly = true)
 public class OrderItemServiceImpl implements OrderItemService {
 
     private final OrderItemRepository orderItemRepository;
@@ -44,65 +45,65 @@ public class OrderItemServiceImpl implements OrderItemService {
     @Override
     public OrderItem getOrderItemById(Long id) {
         return orderItemRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
+                .orElseThrow(() -> new NoSuchElementException(
                         "Order item not found with ID: " + id
                 ));
     }
 
     // CREATE
     @Override
+    @Transactional
     public OrderItem createOrderItem(OrderItem orderItem) {
+        if (orderItem == null) {
+            throw new IllegalArgumentException("Order item details are required");
+        }
 
-        // Find existing customer order
-        Long orderId = orderItem.getCustomerOrder().getId();
+        Long orderId = requiredOrderId(orderItem.getCustomerOrder());
 
         CustomerOrder customerOrder = customerOrderRepository
                 .findById(orderId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Customer order not found"
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Customer order not found with ID: " + orderId
                 ));
 
-        // Find existing product
-        Long productId = orderItem.getProduct().getId();
+        Long productId = requiredProductId(orderItem.getProduct());
 
         Product product = productRepository
                 .findById(productId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Product not found"
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Product not found with ID: " + productId
                 ));
 
-        // Set relationships
+        int quantity = positiveQuantity(orderItem.getQuantity());
+
         orderItem.setCustomerOrder(customerOrder);
         orderItem.setProduct(product);
+        orderItem.setQuantity(quantity);
 
-        // Calculate line total
-        BigDecimal lineTotal = orderItem.getUnitPrice()
-                .multiply(BigDecimal.valueOf(orderItem.getQuantity()));
+        // Snapshot trusted catalogue data instead of accepting prices from the client.
+        orderItem.setProductSku(product.getSku());
+        orderItem.setProductName(product.getName());
+        orderItem.setUnitPrice(product.getPrice());
+        orderItem.setLineTotal(calculateLineTotal(product.getPrice(), quantity));
 
-        orderItem.setLineTotal(lineTotal);
-
-        // Save
         return orderItemRepository.save(orderItem);
     }
 
     // UPDATE
     @Override
+    @Transactional
     public OrderItem updateOrderItem(Long id, OrderItem orderItem) {
+        if (orderItem == null) {
+            throw new IllegalArgumentException("Order item details are required");
+        }
 
         OrderItem existingOrderItem = getOrderItemById(id);
+        int quantity = positiveQuantity(orderItem.getQuantity());
 
-        existingOrderItem.setQuantity(orderItem.getQuantity());
-        existingOrderItem.setProductSku(orderItem.getProductSku());
-        existingOrderItem.setProductName(orderItem.getProductName());
-        existingOrderItem.setUnitPrice(orderItem.getUnitPrice());
-
+        // Product and snapshot price are immutable during an item quantity update.
+        existingOrderItem.setQuantity(quantity);
         existingOrderItem.setLineTotal(
-                orderItem.getUnitPrice().multiply(
-                        BigDecimal.valueOf(orderItem.getQuantity())
-                )
+                calculateLineTotal(existingOrderItem.getUnitPrice(), quantity)
         );
 
         return orderItemRepository.save(existingOrderItem);
@@ -110,8 +111,37 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     // DELETE
     @Override
+    @Transactional
     public void deleteOrderItem(Long id) {
         OrderItem existingOrderItem = getOrderItemById(id);
         orderItemRepository.delete(existingOrderItem);
+    }
+
+    private Long requiredOrderId(CustomerOrder order) {
+        if (order == null || order.getId() == null) {
+            throw new IllegalArgumentException("Customer order ID is required");
+        }
+        return order.getId();
+    }
+
+    private Long requiredProductId(Product product) {
+        if (product == null || product.getId() == null) {
+            throw new IllegalArgumentException("Product ID is required");
+        }
+        return product.getId();
+    }
+
+    private int positiveQuantity(Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero");
+        }
+        return quantity;
+    }
+
+    private BigDecimal calculateLineTotal(BigDecimal unitPrice, int quantity) {
+        if (unitPrice == null || unitPrice.signum() < 0) {
+            throw new IllegalStateException("Product price must be zero or greater");
+        }
+        return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }
 }

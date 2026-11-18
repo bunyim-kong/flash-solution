@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.back_end.model.User;
 import com.example.back_end.repository.UserRepository;
@@ -16,9 +17,11 @@ import com.example.back_end.repository.UserRepository;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // function create
@@ -28,7 +31,7 @@ public class UserServiceImpl implements UserService {
         user.setId(null);
         user.setName(text(user.getName(), "User name"));
         user.setEmail(text(user.getEmail(), "User email").toLowerCase(Locale.ROOT));
-        user.setPassword(text(user.getPassword(), "User password"));
+        user.setPassword(passwordEncoder.encode(text(user.getPassword(), "User password")));
         user.setRole(text(user.getRole(), "User role"));
 
         checkUnique(user.getName(), user.getEmail(), null, null);
@@ -56,14 +59,15 @@ public class UserServiceImpl implements UserService {
 
         String name = text(user.getName(), "User name");
         String email = text(user.getEmail(), "User email").toLowerCase(Locale.ROOT);
-        String password = text(user.getPassword(), "User password");
         String role = text(user.getRole(), "User role");
 
         checkUnique(name, email, existing.getName(), existing.getEmail());
 
         existing.setName(name);
         existing.setEmail(email);
-        existing.setPassword(password);
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            existing.setPassword(passwordEncoder.encode(user.getPassword().trim()));
+        }
         existing.setRole(role);
 
         return existing;
