@@ -45,7 +45,11 @@ public class CustomerOrderServiceImpl implements  CustomerOrderService{
                 .orElseThrow(() -> new NoSuchElementException("User " + userId + " was not found"));
         customerOrder.setUser(user);
 
-        customerOrder.setOrderNumber(text(customerOrder.getOrderNumber()));
+        String order_number = text(customerOrder.getOrderNumber());
+        if (repository.existsByOrderNumberIgnoreCase(order_number)) {
+            throw new IllegalArgumentException("Order number '" + order_number + "' already exists");
+        }
+        customerOrder.setOrderNumber(order_number);
         customerOrder.setStatus(text(customerOrder.getStatus()));
         customerOrder.setTotalAmount(decimal(customerOrder.getTotalAmount()));
         customerOrder.setCustomerName(text(customerOrder.getCustomerName()));
@@ -71,6 +75,11 @@ public class CustomerOrderServiceImpl implements  CustomerOrderService{
         CustomerOrder existing = findCustomerOrderById(id);
 
         String order_number = text(customerOrder.getOrderNumber());
+        repository.findByOrderNumberIgnoreCase(order_number)
+                .filter(other -> !other.getId().equals(id))
+                .ifPresent(other -> {
+                    throw new IllegalArgumentException("Order number '" + order_number + "' already exists");
+                });
         String status = text(customerOrder.getStatus());
         BigDecimal total_amount = decimal(customerOrder.getTotalAmount());
         String customer_name = text(customerOrder.getCustomerName());
