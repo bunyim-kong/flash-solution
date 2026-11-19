@@ -20,7 +20,7 @@ public class CustomerOrder {
     private Long id;
 
     @Column(name = "order_number", nullable = false, unique = true)
-    private String order_number;
+    private String orderNumber;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -54,7 +54,7 @@ public class CustomerOrder {
     }
 
     public String getOrderNumber() {
-        return order_number;
+        return orderNumber;
     }
 
     public User getUser() {
@@ -97,8 +97,8 @@ public class CustomerOrder {
         this.id = id;
     }
     
-    public void setOrderNumber(String order_number){
-        this.order_number = order_number;
+    public void setOrderNumber(String orderNumber){
+        this.orderNumber = orderNumber;
     }
 
     public void setUser(User user){
