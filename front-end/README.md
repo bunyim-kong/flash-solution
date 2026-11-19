@@ -41,7 +41,7 @@ The admin area is included for interface and API analysis. Authentication and au
 ## Backend integration
 Products, brands, categories, and admin users are loaded from the Java Spring Boot REST API. Admin create, edit, and delete actions write through the API to MySQL. The shopping cart remains in browser local storage because the backend does not have a cart table.
 
-The API service layer is in `src/services/api.js` and uses **Axios with async/await**. It uses `http://localhost:8080/api` by default; set `VITE_API_BASE_URL` in `.env` to use another URL. The original `src/data/products.js` file remains only as a reference for the initial catalogue and is not imported by the application. See `back-end/docs/FRONTEND_BACKEND_INTEGRATION.md` for the complete table, endpoint, mapping, and screen-by-screen fetch documentation.
+The API service layer is in `src/services/api.js` and uses **Axios with async/await**. It uses `http://localhost:8080/api` by default; set `VITE_API_BASE_URL` in `.env` to use another URL. Unused mock catalogue data and unused API methods were removed so the file only contains requests made by the current interface. See `FRONTEND_BACKEND_INTEGRATION.pdf` in the project root for the complete table, endpoint, mapping, and screen-by-screen fetch documentation.
 
 ## Teaching note
 The product list and admin CRUD interface are designed to help Junior Backend Developers identify entities, fields, validation rules, API endpoints, HTTP methods, and expected responses. Sample data is illustrative and can be changed by the project team.
