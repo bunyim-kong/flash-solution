@@ -1,6 +1,6 @@
 package com.example.back_end.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,7 +22,6 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    @JsonIgnore
     @Column(name = "password")
     private String passwordHash;
 
@@ -56,6 +55,7 @@ public class User {
     }
 
     // Getter and Setter for Password
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     public String getPassword() {
         return passwordHash;
     }

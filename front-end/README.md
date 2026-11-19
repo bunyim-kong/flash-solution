@@ -39,9 +39,9 @@ npm run preview
 The admin area is included for interface and API analysis. Authentication and authorization are not implemented; the routes are not protected. Add Spring Security and role-based authorization in the backend before using a real admin account.
 
 ## Backend integration
-The project currently uses local mock data in `src/data/products.js` and browser local storage for the cart. No real backend is connected.
+Products, brands, categories, and admin users are loaded from the Java Spring Boot REST API. Admin create, edit, and delete actions write through the API to MySQL. The shopping cart remains in browser local storage because the backend does not have a cart table.
 
-The API service layer is in `src/services/api.js` and uses **Axios with async/await** to communicate with the Java Spring Boot REST API. Set `VITE_API_BASE_URL` in `.env` when the backend is ready. The current storefront still uses sample data and local storage so it can run independently before backend integration. See `docs/AXIOS_ASYNC_AWAIT.md` for teaching examples. Suggested endpoints are documented in `docs/API_REQUIREMENTS.md`.
+The API service layer is in `src/services/api.js` and uses **Axios with async/await**. It uses `http://localhost:8080/api` by default; set `VITE_API_BASE_URL` in `.env` to use another URL. The original `src/data/products.js` file remains only as a reference for the initial catalogue and is not imported by the application. See `back-end/docs/FRONTEND_BACKEND_INTEGRATION.md` for the complete table, endpoint, mapping, and screen-by-screen fetch documentation.
 
 ## Teaching note
 The product list and admin CRUD interface are designed to help Junior Backend Developers identify entities, fields, validation rules, API endpoints, HTTP methods, and expected responses. Sample data is illustrative and can be changed by the project team.
@@ -77,11 +77,11 @@ This version applies the approved Lumière Beauty visual direction throughout th
 The existing local SVG product illustrations remain demo assets. Replace them with licensed product photography when preparing a production storefront.
 
 
-## Contact and Admin User Management (demo)
+## Contact and Admin User Management
 - Contact email shown in the storefront: LumiereBeauty@gmail.com
 - Customer support hours shown: 24/7
-- Admin workspace includes a User Management page at `/admin/users` with sample account records, role changes, status changes, and removal.
-- User management currently stores demo records in browser localStorage. It does not create real user credentials or enforce access control. Production use requires backend authentication, secure password handling, role-based authorization, and protected admin endpoints.
+- Admin workspace includes a User Management page at `/admin/users` with backend list, create, role update, and delete actions.
+- Passwords are hashed by the backend and omitted from API responses. Authentication and authorization are still not implemented; production use requires protected admin endpoints and login/session handling.
 
 
 ## Real product images

@@ -1,13 +1,14 @@
 # Admin area status
 
-## Included in this frontend
+## Included and connected
 - Admin dashboard layout and navigation
-- Product list, search, status filter, add/edit form and demo delete
-- User management list, search, demo role/status changes and demo removal
+- Product list, search, status filter, backend add/edit and backend delete
+- User management backend list, create, role change and delete
+- Brand and category selectors loaded from backend tables
 - Admin login screen design is not connected to a real authentication service
 
 ## Not yet secure / not yet implemented
-The frontend currently does not authenticate administrators or enforce permissions. Demo product and user data are stored in browser state/localStorage.
+The frontend currently does not authenticate administrators or enforce permissions. Catalogue and user CRUD are connected, but the backend endpoints are public until Spring Security is implemented. The cart remains in localStorage because there is no cart table.
 
 ## Student implementation task (Spring Boot)
 Students should implement:
