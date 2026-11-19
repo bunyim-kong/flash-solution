@@ -83,6 +83,77 @@ export const brandApi = {
       console.error('Unable to load brands:', error)
       throw error
     }
+  },
+
+  async getById(id) {
+    const response = await apiClient.get(`/brands/${id}`)
+    return response.data
+  },
+
+  async create(brandData) {
+    const response = await apiClient.post('/brands', brandData)
+    return response.data
+  },
+
+  async update(id, brandData) {
+    const response = await apiClient.put(`/brands/${id}`, brandData)
+    return response.data
+  },
+
+  async remove(id) {
+    await apiClient.delete(`/brands/${id}`)
+  }
+}
+
+export const categoryApi = {
+  async getAll() {
+    const response = await apiClient.get('/categories')
+    return response.data
+  },
+
+  async getById(id) {
+    const response = await apiClient.get(`/categories/${id}`)
+    return response.data
+  },
+
+  async create(categoryData) {
+    const response = await apiClient.post('/categories', categoryData)
+    return response.data
+  },
+
+  async update(id, categoryData) {
+    const response = await apiClient.put(`/categories/${id}`, categoryData)
+    return response.data
+  },
+
+  async remove(id) {
+    await apiClient.delete(`/categories/${id}`)
+  }
+}
+
+export const userApi = {
+  async getAll() {
+    const response = await apiClient.get('/users')
+    return response.data
+  },
+
+  async getById(id) {
+    const response = await apiClient.get(`/users/${id}`)
+    return response.data
+  },
+
+  async create(userData) {
+    const response = await apiClient.post('/users', userData)
+    return response.data
+  },
+
+  async update(id, userData) {
+    const response = await apiClient.put(`/users/${id}`, userData)
+    return response.data
+  },
+
+  async remove(id) {
+    await apiClient.delete(`/users/${id}`)
   }
 }
 
@@ -110,27 +181,57 @@ export const authApi = {
   }
 }
 
-export const orderApi = {
-  // POST /api/orders
-  async create(orderData) {
-    try {
-      const response = await apiClient.post('/orders', orderData)
-      return response.data
-    } catch (error) {
-      console.error('Unable to create order:', error)
-      throw error
-    }
+export const customerOrderApi = {
+  async getAll() {
+    const response = await apiClient.get('/customer-orders')
+    return response.data
   },
 
-  // GET /api/orders/my
-  async getMyOrders() {
-    try {
-      const response = await apiClient.get('/orders/my')
-      return response.data
-    } catch (error) {
-      console.error('Unable to load orders:', error)
-      throw error
-    }
+  async getById(id) {
+    const response = await apiClient.get(`/customer-orders/${id}`)
+    return response.data
+  },
+
+  async create(userId, orderData) {
+    const response = await apiClient.post('/customer-orders', orderData, {
+      params: { userId }
+    })
+    return response.data
+  },
+
+  async update(id, orderData) {
+    const response = await apiClient.put(`/customer-orders/${id}`, orderData)
+    return response.data
+  },
+
+  async remove(id) {
+    await apiClient.delete(`/customer-orders/${id}`)
+  }
+}
+
+export const orderItemApi = {
+  async getAll() {
+    const response = await apiClient.get('/order-items')
+    return response.data
+  },
+
+  async getById(id) {
+    const response = await apiClient.get(`/order-items/${id}`)
+    return response.data
+  },
+
+  async create(orderItemData) {
+    const response = await apiClient.post('/order-items', orderItemData)
+    return response.data
+  },
+
+  async update(id, orderItemData) {
+    const response = await apiClient.put(`/order-items/${id}`, orderItemData)
+    return response.data
+  },
+
+  async remove(id) {
+    await apiClient.delete(`/order-items/${id}`)
   }
 }
 

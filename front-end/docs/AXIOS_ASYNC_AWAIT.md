@@ -67,4 +67,4 @@ export default function ProductList() {
 
 ## Important for the current project
 
-The storefront still uses sample data and browser local storage so the website can run before the Spring Boot backend is available. The Axios service layer is prepared for the developers to study and use when they implement API integration. Do not expect these API calls to return real data until the Spring Boot endpoints are running and the API URL/CORS settings are configured.
+The storefront now loads products, brands, and categories through this Axios service, and the admin product and user pages use real backend CRUD. Start Spring Boot before the frontend. The catalogue deliberately starts empty and shows an error if the API cannot be reached; it does not silently replace backend data with mock products. The cart is the only shop state that remains in browser local storage.

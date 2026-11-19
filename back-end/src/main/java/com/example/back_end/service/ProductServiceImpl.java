@@ -10,6 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.back_end.model.Product;
 import com.example.back_end.model.Product.ProductStatus;
+import com.example.back_end.model.Brand;
+import com.example.back_end.model.Category;
+import com.example.back_end.repository.BrandRepository;
+import com.example.back_end.repository.CategoryRepository;
 import com.example.back_end.repository.ProductRepository;
 
 @Service
@@ -17,9 +21,16 @@ import com.example.back_end.repository.ProductRepository;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final BrandRepository brandRepository;
+    private final CategoryRepository categoryRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository) {
+    public ProductServiceImpl(
+            ProductRepository productRepository,
+            BrandRepository brandRepository,
+            CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
+        this.brandRepository = brandRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     // function create
@@ -29,8 +40,8 @@ public class ProductServiceImpl implements ProductService {
         product.setId(null);
         product.setSku(text(product.getSku(), "Product sku").toUpperCase(Locale.ROOT));
         product.setName(text(product.getName(), "Product name"));
-        product.setBrand(required(product.getBrand(), "Product brand"));
-        product.setCategory(required(product.getCategory(), "Product category"));
+        product.setBrand(findBrand(product.getBrand()));
+        product.setCategory(findCategory(product.getCategory()));
         product.setPrice(nonNegative(product.getPrice(), "Product price"));
         product.setStock(nonNegative(product.getStock(), "Product stock"));
         product.setProductStatus(product.getProductStatus() == null ? ProductStatus.DRAFT : product.getProductStatus());
@@ -64,8 +75,8 @@ public class ProductServiceImpl implements ProductService {
 
         existing.setSku(sku);
         existing.setName(text(product.getName(), "Product name"));
-        existing.setBrand(required(product.getBrand(), "Product brand"));
-        existing.setCategory(required(product.getCategory(), "Product category"));
+        existing.setBrand(findBrand(product.getBrand()));
+        existing.setCategory(findCategory(product.getCategory()));
         existing.setPrice(nonNegative(product.getPrice(), "Product price"));
         existing.setDescription(optionalText(product.getDescription()));
         existing.setImageUrl(optionalText(product.getImageUrl()));
@@ -99,11 +110,20 @@ public class ProductServiceImpl implements ProductService {
         return value == null ? null : value.trim();
     }
 
-    private <T> T required(T value, String field) {
-        if (value == null) {
-            throw new IllegalArgumentException(field + " is require.");
+    private Brand findBrand(Brand brand) {
+        if (brand == null || brand.getId() == null) {
+            throw new IllegalArgumentException("Product brand ID is required.");
         }
-        return value;
+        return brandRepository.findById(brand.getId()).orElseThrow(() ->
+            new NoSuchElementException("Brand with ID " + brand.getId() + " was not found."));
+    }
+
+    private Category findCategory(Category category) {
+        if (category == null || category.getId() == null) {
+            throw new IllegalArgumentException("Product category ID is required.");
+        }
+        return categoryRepository.findById(category.getId()).orElseThrow(() ->
+            new NoSuchElementException("Category with ID " + category.getId() + " was not found."));
     }
 
     private BigDecimal nonNegative(BigDecimal value, String field) {
