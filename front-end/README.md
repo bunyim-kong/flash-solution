@@ -70,6 +70,7 @@ The generated production files are placed in `dist/`.
 
 ## Notes
 
+<<<<<<< HEAD
 The admin area is included for interface and API analysis. Authentication and authorization are not implemented; the routes are not protected. Add Spring Security and role-based authorization in the backend before using a real admin account.
 
 ## Backend integration
@@ -125,3 +126,6 @@ The demo catalogue now uses product packshot image URLs for the sample products 
 ## V19 Sage & Pearl colour correction
 
 The interface uses the Sage & Pearl palette consistently. Purple/lavender theme values from the previous version have been replaced with sage, olive, and warm pearl tones.
+=======
+The API client is located at `src/services/api.js`. Some storefront features still use sample data or browser local storage and are not fully connected to the backend.
+>>>>>>> 8d65ef4 (feat: add 2 different readme on both front-end and back-end)
