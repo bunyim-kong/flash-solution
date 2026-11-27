@@ -1,6 +1,7 @@
 
 package com.example.back_end.service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
@@ -11,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.back_end.model.User;
 import com.example.back_end.repository.UserRepository;
+import com.example.back_end.repository.CustomerOrderRepository;
+import com.example.back_end.repository.ShopSelectionRepository;
 
 @Service
 @Transactional(readOnly = true)
@@ -19,9 +22,15 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    private final CustomerOrderRepository orders;
+    private final ShopSelectionRepository selections;
+
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                           CustomerOrderRepository orders, ShopSelectionRepository selections) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.orders = orders;
+        this.selections = selections;
     }
 
     // function create
@@ -30,9 +39,9 @@ public class UserServiceImpl implements UserService {
     public User createUser(User user) {
         user.setId(null);
         user.setName(text(user.getName(), "User name"));
-        user.setEmail(text(user.getEmail(), "User email").toLowerCase(Locale.ROOT));
-        user.setPassword(passwordEncoder.encode(text(user.getPassword(), "User password")));
-        user.setRole(text(user.getRole(), "User role"));
+        user.setEmail(email(user.getEmail()));
+        user.setPassword(passwordEncoder.encode(password(user.getPassword())));
+        user.setRole(role(user.getRole()));
 
         checkUnique(user.getName(), user.getEmail(), null, null);
 
@@ -55,20 +64,21 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User updateUser(Long id, User user) {
-        User existing = getUserById(id);
+        User existing = lockUser(id);
 
         String name = text(user.getName(), "User name");
-        String email = text(user.getEmail(), "User email").toLowerCase(Locale.ROOT);
-        String role = text(user.getRole(), "User role");
+        String email = email(user.getEmail());
+        String role = role(user.getRole());
 
         checkUnique(name, email, existing.getName(), existing.getEmail());
 
         existing.setName(name);
         existing.setEmail(email);
         if (user.getPassword() != null && !user.getPassword().isBlank()) {
-            existing.setPassword(passwordEncoder.encode(user.getPassword().trim()));
+            existing.setPassword(passwordEncoder.encode(password(user.getPassword())));
         }
         existing.setRole(role);
+        existing.setActive(user.isActive());
 
         return existing;
     }
@@ -77,7 +87,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        userRepository.delete(getUserById(id));
+        User user = lockUser(id);
+        if (orders.existsByUserId(id)) {
+            throw new IllegalArgumentException("This account has order history. Suspend it to remove access.");
+        }
+        selections.deleteById(id);
+        userRepository.delete(user);
     }
 
     //
@@ -90,6 +105,35 @@ public class UserServiceImpl implements UserService {
         if (!email.equals(oldEmail) && userRepository.existsByEmailIgnoreCase(email)) {
             throw new IllegalArgumentException("A User with " + email + " already exists");
         }
+    }
+
+    private User lockUser(Long id) {
+        return userRepository.lockById(id)
+                .orElseThrow(() -> new NoSuchElementException("User with ID " + id + " was not found"));
+    }
+
+    private String email(String value) {
+        String email = text(value, "User email").toLowerCase(Locale.ROOT);
+        if (email.length() > 255 || !email.matches("[^\\s@]+@[^\\s@]+")) {
+            throw new IllegalArgumentException("Enter a valid email address");
+        }
+        return email;
+    }
+
+    private String role(String value) {
+        String role = text(value, "User role").toUpperCase(Locale.ROOT);
+        if (!role.equals("ADMIN") && !role.equals("CUSTOMER")) {
+            throw new IllegalArgumentException("Choose a valid account role");
+        }
+        return role;
+    }
+
+    private String password(String value) {
+        if (value == null || value.isBlank() || value.length() < 8
+                || value.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("Use at least 8 characters and at most 72 UTF-8 bytes for the password");
+        }
+        return value;
     }
 
     private String text(String value, String field) {

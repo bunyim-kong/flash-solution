@@ -1,6 +1,7 @@
 package com.example.back_end.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,11 +23,13 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    @JsonIgnore
     @Column(name = "password")
     private String passwordHash;
 
     private String role;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean active = true;
 
     // Getter and Setter for ID
     public Long getId() {
@@ -56,12 +59,22 @@ public class User {
     }
 
     // Getter and Setter for Password
+    @JsonIgnore
     public String getPassword() {
         return passwordHash;
     }
 
+    @JsonProperty("password")
     public void setPassword(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     // Getter and Setter for Role

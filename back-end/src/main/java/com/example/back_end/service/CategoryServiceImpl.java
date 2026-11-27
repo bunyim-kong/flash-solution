@@ -72,6 +72,8 @@ public class CategoryServiceImpl implements CategoryService {
 
         existing.setName(name);
         existing.setSlug(slug);
+        existing.setDescription(category.getDescription());
+        existing.setActive(category.isActive());
 
         return existing;
     }

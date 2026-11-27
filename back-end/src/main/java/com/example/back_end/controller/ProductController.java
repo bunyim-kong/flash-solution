@@ -1,6 +1,10 @@
 package com.example.back_end.controller;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+
+import com.example.back_end.config.ApiAccess;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -27,14 +31,19 @@ public class ProductController {
 
     // get method to get all
     @GetMapping
-    public List<Product> getAll() {
-        return productService.getAllProducts();
+    public List<Product> getAll(@RequestParam(defaultValue = "false") boolean manage, HttpServletRequest request) {
+        return productService.getAllProducts().stream()
+                .filter(product -> visible(product, manage, request))
+                .toList();
     }
 
     // get method to get one
     @GetMapping("/{id}")
-    public Product getById(@PathVariable Long id) {
-        return productService.getProductById(id);
+    public Product getById(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean manage,
+                           HttpServletRequest request) {
+        Product product = productService.getProductById(id);
+        if (!visible(product, manage, request)) throw new NoSuchElementException("Product was not found");
+        return product;
     }
 
     // update method
@@ -48,5 +57,9 @@ public class ProductController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         productService.deleteProduct(id);
+    }
+    private boolean visible(Product product, boolean manage, HttpServletRequest request) {
+        return (manage && ApiAccess.isAdmin(ApiAccess.account(request)))
+                || (product.getProductStatus() == Product.ProductStatus.ACTIVE && product.getCategory().isActive());
     }
 }

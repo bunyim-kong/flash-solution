@@ -16,7 +16,7 @@ React frontend for the Lumière cosmetics shop. It includes the customer storefr
 
 - Node.js 18 or newer
 - npm
-- Lumière backend running on port `8080` when using the API
+- Lumière backend running on port `8080` by default
 
 ## Installation
 
@@ -39,13 +39,14 @@ On Windows Command Prompt, use:
 copy .env.example .env
 ```
 
-The default API URL in `.env` is:
+The default API configuration uses the Vite proxy:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8080/api
+VITE_API_BASE_URL=/api
+API_PROXY_TARGET=http://localhost:8080
 ```
 
-Change it if the backend runs at a different address.
+Set `API_PROXY_TARGET` if Spring runs at a different address. Use the relative `/api` path so the browser sends its session cookie to the same origin.
 
 ## Run Instructions
 
@@ -70,4 +71,6 @@ The generated production files are placed in `dist/`.
 
 ## Notes
 
-The API client is located at `src/services/api.js`. Some storefront features still use sample data or browser local storage and are not fully connected to the backend.
+For production hosting, serve `dist/` with an SPA fallback and forward `/api/*` to Spring on the same origin. Set `SESSION_COOKIE_SECURE=true` on the backend when serving over HTTPS.
+
+The shop, cart, saved products, accounts, checkout, order history, and admin pages use Spring. Older browser demo data is separate from the server catalogue and accounts. See the [backend setup](../back-end/README.md) to bootstrap an administrator and optionally load the sample catalogue.

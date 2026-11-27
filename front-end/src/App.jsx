@@ -1,6 +1,6 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useLayoutEffect } from "react";
-import { ShopProvider } from "./context/ShopContext";
+import { ShopProvider, useShop } from "./context/ShopContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import AdminLayout from "./components/AdminLayout";
@@ -10,7 +10,10 @@ import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Auth from "./pages/Auth";
-import Orders from "./pages/Orders";
+import Orders, { AdminOrders } from "./pages/Orders";
+import SavedProducts from "./pages/SavedProducts";
+import AdminCatalogue from "./pages/AdminCatalogue";
+import RequestState from "./components/RequestState";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -30,9 +33,12 @@ function ScrollToTop() {
   return null;
 }
 function StoreLayout() {
+  const { cartError, reloadCart } = useShop();
+  const { pathname } = useLocation();
   return (
     <>
       <Header />
+      {cartError && !["/cart", "/checkout", "/saved"].includes(pathname) && <div className="container-page"><RequestState error={cartError} reload={reloadCart} /></div>}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/shop" element={<Shop />} />
@@ -42,6 +48,7 @@ function StoreLayout() {
         <Route path="/login" element={<Auth />} />
         <Route path="/register" element={<Auth register />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/saved" element={<SavedProducts />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<Home />} />
@@ -61,6 +68,8 @@ function AppRoutes() {
           <Route path="products/new" element={<AdminProductForm />} />
           <Route path="products/:id/edit" element={<AdminProductForm />} />
           <Route path="users" element={<AdminUsers />} />
+          <Route path="catalogue" element={<AdminCatalogue />} />
+          <Route path="orders" element={<AdminOrders />} />
         </Route>
         <Route path="*" element={<StoreLayout />} />
       </Routes>

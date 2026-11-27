@@ -1,137 +1,52 @@
 import axios from 'axios'
 
-// Base URL of the Java Spring Boot REST API.
-// Change VITE_API_BASE_URL in the .env file when the backend is ready.
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
-
-// Create one Axios instance so all API requests share the same configuration.
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  timeout: 10000
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  timeout: 10000,
 })
 
-// Axios returns the response body inside response.data.
-// async/await makes asynchronous HTTP requests easier to read.
-export const productApi = {
-  // GET /api/products
-  async getAll() {
-    try {
-      const response = await apiClient.get('/products')
-      return response.data
-    } catch (error) {
-      console.error('Unable to load products:', error)
-      throw error
-    }
-  },
+api.interceptors.request.use(config => {
+  if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+    config.headers.set('X-Lumiere-Request', '1')
+  }
+  return config
+})
 
-  // GET /api/products/{id}
-  async getById(id) {
-    try {
-      const response = await apiClient.get(`/products/${id}`)
-      return response.data
-    } catch (error) {
-      console.error(`Unable to load product ${id}:`, error)
-      throw error
-    }
-  },
+export const errorMessage = error =>
+  error.response?.data?.message || (error.response ? 'The request could not be completed.' : 'Could not reach the server. Try again.')
 
-  // POST /api/products
-  async create(productData) {
-    try {
-      const response = await apiClient.post('/products', productData)
-      return response.data
-    } catch (error) {
-      console.error('Unable to create product:', error)
-      throw error
-    }
-  },
-
-  // PUT /api/products/{id}
-  async update(id, productData) {
-    try {
-      const response = await apiClient.put(`/products/${id}`, productData)
-      return response.data
-    } catch (error) {
-      console.error(`Unable to update product ${id}:`, error)
-      throw error
-    }
-  },
-
-  // DELETE /api/products/{id}
-  async remove(id) {
-    try {
-      const response = await apiClient.delete(`/products/${id}`)
-      return response.data
-    } catch (error) {
-      console.error(`Unable to delete product ${id}:`, error)
-      throw error
-    }
+export function resource(path) {
+  return {
+    list: async params => (await api.get(path, { params })).data,
+    get: async (id, params) => (await api.get(`${path}/${id}`, { params })).data,
+    create: async body => (await api.post(path, body)).data,
+    update: async (id, body) => (await api.put(`${path}/${id}`, body)).data,
+    remove: async id => { await api.delete(`${path}/${id}`) },
   }
 }
 
-export const brandApi = {
-  // GET /api/brands
-  async getAll() {
-    try {
-      const response = await apiClient.get('/brands')
-      return response.data
-    } catch (error) {
-      console.error('Unable to load brands:', error)
-      throw error
-    }
-  }
-}
+export const productApi = resource('/products')
+export const brandApi = resource('/brands')
+export const categoryApi = resource('/categories')
+export const userApi = resource('/users')
 
 export const authApi = {
-  // POST /api/auth/login
-  async login(credentials) {
-    try {
-      const response = await apiClient.post('/auth/login', credentials)
-      return response.data
-    } catch (error) {
-      console.error('Login failed:', error)
-      throw error
-    }
-  },
+  me: async () => (await api.get('/auth/me')).data,
+  login: async body => (await api.post('/auth/login', body)).data,
+  register: async body => (await api.post('/auth/register', body)).data,
+  logout: async () => { await api.post('/auth/logout') },
+}
 
-  // POST /api/auth/register
-  async register(accountData) {
-    try {
-      const response = await apiClient.post('/auth/register', accountData)
-      return response.data
-    } catch (error) {
-      console.error('Registration failed:', error)
-      throw error
-    }
-  }
+export const cartApi = {
+  get: async () => (await api.get('/cart')).data,
+  add: async id => (await api.post(`/cart/items/${id}`)).data,
+  update: async (id, quantity) => (await api.put(`/cart/items/${id}`, { quantity })).data,
+  remove: async id => (await api.delete(`/cart/items/${id}`)).data,
+  save: async (id, saved) => (await api.put(`/cart/saved/${id}`, { saved })).data,
 }
 
 export const orderApi = {
-  // POST /api/orders
-  async create(orderData) {
-    try {
-      const response = await apiClient.post('/orders', orderData)
-      return response.data
-    } catch (error) {
-      console.error('Unable to create order:', error)
-      throw error
-    }
-  },
-
-  // GET /api/orders/my
-  async getMyOrders() {
-    try {
-      const response = await apiClient.get('/orders/my')
-      return response.data
-    } catch (error) {
-      console.error('Unable to load orders:', error)
-      throw error
-    }
-  }
+  create: async body => (await api.post('/orders', body)).data,
+  mine: async () => (await api.get('/orders/my')).data,
+  all: async () => (await api.get('/admin/orders')).data,
 }
-
-export default apiClient

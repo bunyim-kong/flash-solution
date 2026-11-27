@@ -1,6 +1,8 @@
 package com.example.back_end.controller;
 
 import java.util.List;
+import com.example.back_end.config.ApiAccess;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +29,10 @@ public class CategoryController {
 
     // READ ALL
     @GetMapping
-    public List<Category> getAll() {
-        return categoryService.getAllCategories();
+    public List<Category> getAll(@RequestParam(defaultValue = "false") boolean manage, HttpServletRequest request) {
+        return categoryService.getAllCategories().stream()
+                .filter(category -> category.isActive() || (manage && ApiAccess.isAdmin(ApiAccess.account(request))))
+                .toList();
     }
 
     // READ BY ID

@@ -1,10 +1,9 @@
 import { Link } from "react-router-dom";
 import { Heart, ShoppingBag } from "lucide-react";
 import { useShop } from "../context/ShopContext";
-import { useState } from "react";
 export default function ProductCard({ product }) {
-  const { addToCart } = useShop();
-  const [liked, setLiked] = useState(false);
+  const { addToCart, cartBusy, savedProductIds, saveProduct } = useShop();
+  const liked = savedProductIds.includes(product.id);
   return (
     <article className="group">
       <div className="relative overflow-hidden rounded-2xl bg-[#ECEBDD]">
@@ -21,9 +20,11 @@ export default function ProductCard({ product }) {
           </span>
         )}
         <button
-          onClick={() => setLiked(!liked)}
+          onClick={() => saveProduct(product.id, !liked)}
+          disabled={cartBusy}
+          aria-pressed={liked}
           className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-[#FBF8F2]/95 text-wine shadow-sm transition hover:bg-white"
-          aria-label="Save product"
+          aria-label={`${liked ? "Unsave" : "Save"} ${product.name}`}
         >
           <Heart
             size={16}
@@ -33,9 +34,10 @@ export default function ProductCard({ product }) {
         </button>
         <button
           onClick={() => addToCart(product)}
-          className="absolute bottom-3 left-3 right-3 flex translate-y-3 items-center justify-center gap-2 rounded-full bg-wine py-3 text-xs font-semibold text-white opacity-0 transition group-hover:translate-y-0 group-hover:opacity-100"
+          disabled={cartBusy || product.stock === 0}
+          className="absolute bottom-3 left-3 right-3 flex items-center justify-center gap-2 rounded-full bg-wine py-3 text-xs font-semibold text-white transition disabled:opacity-60 sm:translate-y-3 sm:opacity-0 sm:focus-visible:translate-y-0 sm:focus-visible:opacity-100 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
         >
-          <ShoppingBag size={15} /> Add to bag
+          <ShoppingBag size={15} /> {product.stock === 0 ? "Sold out" : "Add to bag"}
         </button>
       </div>
       <div className="pt-4">

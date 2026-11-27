@@ -1,13 +1,85 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Save } from 'lucide-react'
+import RequestState from '../components/RequestState'
 import { useShop } from '../context/ShopContext'
-const empty={id:'',name:'',brand:'',category:'Skincare',price:'',stock:'',status:'Active',featured:false,imageUrl:'',description:''}
-export default function AdminProductForm(){
- const {id}=useParams(); const editing=Boolean(id); const {products,saveProduct}=useShop(); const navigate=useNavigate()
- const [form,setForm]=useState(empty); const [error,setError]=useState('')
- useEffect(()=>{if(editing){const found=products.find(p=>p.id===id);if(found)setForm({...found})}},[id,editing,products])
- const change=e=>{const {name,value,type,checked}=e.target;setForm(f=>({...f,[name]:type==='checkbox'?checked:value}))}
- const submit=e=>{e.preventDefault();if(!form.name.trim()||!form.price||!form.stock){setError('Please complete the product name, price and stock.');return}const product={...form,id:editing?id:`P-${Date.now().toString().slice(-6)}`,price:Number(form.price),stock:Number(form.stock)};saveProduct(product);navigate('/admin/products')}
- return <><Link to="/admin/products" className="inline-flex items-center gap-2 text-sm text-muted"><ArrowLeft size={15}/> Back to products</Link><div className="mt-5"><p className="eyebrow text-rose">{editing?'Catalogue update':'New catalogue item'}</p><h1 className="mt-2 font-display text-4xl">{editing?'Edit product':'Add product'}</h1><p className="mt-2 text-sm text-muted">Enter the product information below.</p></div><form onSubmit={submit} className="mt-8 max-w-3xl rounded-2xl border border-line bg-white p-6 md:p-8"><div className="grid gap-5 md:grid-cols-2"><label className="text-xs font-semibold">Product name *<input className="field mt-2" name="name" value={form.name} onChange={change} required placeholder="e.g. Daily Hydrating Serum"/></label><label className="text-xs font-semibold">Brand<input className="field mt-2" name="brand" value={form.brand} onChange={change} placeholder="Brand name"/></label><label className="text-xs font-semibold">Category<select className="field mt-2" name="category" value={form.category} onChange={change}><option>Skincare</option><option>Makeup</option><option>Haircare</option><option>Body</option></select></label><label className="text-xs font-semibold">Price (USD) *<input className="field mt-2" type="number" min="0" step="0.01" name="price" value={form.price} onChange={change} required placeholder="0.00"/></label><label className="text-xs font-semibold">Stock quantity *<input className="field mt-2" type="number" min="0" name="stock" value={form.stock} onChange={change} required placeholder="0"/></label><label className="text-xs font-semibold">Status<select className="field mt-2" name="status" value={form.status} onChange={change}><option>Active</option><option>Draft</option></select></label><label className="text-xs font-semibold md:col-span-2">Image URL<input className="field mt-2" name="imageUrl" value={form.imageUrl} onChange={change} placeholder="https://example.com/product.jpg"/></label><label className="text-xs font-semibold md:col-span-2">Description<textarea className="field mt-2 min-h-28" name="description" value={form.description} onChange={change} placeholder="Describe the product..."/></label><label className="flex items-center gap-2 text-sm md:col-span-2"><input type="checkbox" name="featured" checked={Boolean(form.featured)} onChange={change}/> Feature this product on the home page</label></div>{error&&<p className="mt-4 text-sm text-rose">{error}</p>}<div className="mt-7 flex flex-wrap gap-3 border-t border-line pt-6"><button className="btn-primary"><Save size={16}/> Save product</button><Link to="/admin/products" className="btn-outline">Cancel</Link></div></form></>
+import { brandApi, categoryApi, errorMessage, productApi } from '../services/api'
+import { useRequest } from '../services/useRequest'
+
+const manage = { manage: true }
+
+export default function AdminProductForm() {
+  const { id } = useParams()
+  const load = useCallback(async () => {
+    const [brands, categories, product] = await Promise.all([
+      brandApi.list(), categoryApi.list(manage), id ? productApi.get(id, manage) : null,
+    ])
+    return { brands, categories, product }
+  }, [id])
+  const request = useRequest(load)
+
+  return (
+    <>
+      <Link to="/admin/products" className="inline-flex items-center gap-2 text-sm text-muted"><ArrowLeft size={15} /> Back to products</Link>
+      <h1 className="mt-5 font-display text-4xl">{id ? 'Edit product' : 'Add product'}</h1>
+      <RequestState {...request} />
+      {!request.loading && request.data && <ProductFields key={id || 'new'} {...request.data} />}
+    </>
+  )
+}
+
+function ProductFields({ product, brands, categories }) {
+  const { catalogue } = useShop()
+  const navigate = useNavigate()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  async function submit(event) {
+    event.preventDefault()
+    const fields = Object.fromEntries(new FormData(event.currentTarget))
+    const { brandId, categoryId, ...details } = fields
+    const body = {
+      ...details, brand: { id: Number(brandId) }, category: { id: Number(categoryId) },
+      price: Number(details.price), stock: Number(details.stock), featured: fields.featured === 'on',
+    }
+    setBusy(true)
+    setError('')
+    try {
+      if (product) await productApi.update(product.id, body)
+      else await productApi.create(body)
+      catalogue.reload()
+      navigate('/admin/products')
+    } catch (failure) {
+      setError(errorMessage(failure))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!brands.length || !categories.length) {
+    return <p className="mt-6 text-sm text-muted">Add a brand and category in <Link className="font-semibold text-wine underline" to="/admin/catalogue">Brands and categories</Link> before creating a product.</p>
+  }
+
+  return (
+    <form onSubmit={submit} className="mt-8 max-w-3xl rounded-2xl border border-line bg-white p-6 md:p-8">
+      <fieldset disabled={busy} className="grid gap-5 md:grid-cols-2">
+        <label className="text-sm">Product name<input name="name" required maxLength={150} defaultValue={product?.name} className="field mt-2" /></label>
+        <label className="text-sm">SKU<input name="sku" required maxLength={50} defaultValue={product?.sku} className="field mt-2" /></label>
+        <label className="text-sm">Brand<select name="brandId" required defaultValue={product?.brand?.id || ''} className="field mt-2">
+          <option value="" disabled>Choose a brand</option>{brands.map(brand => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
+        </select></label>
+        <label className="text-sm">Category<select name="categoryId" required defaultValue={product?.category?.id || ''} className="field mt-2">
+          <option value="" disabled>Choose a category</option>{categories.map(category => <option key={category.id} value={category.id}>{category.name}{!category.active && ' (hidden)'}</option>)}
+        </select></label>
+        <label className="text-sm">Price (USD)<input name="price" type="number" required min="0" max="9999999999.99" step="0.01" defaultValue={product?.price} className="field mt-2" /></label>
+        <label className="text-sm">Stock quantity<input name="stock" type="number" required min="0" max="2147483647" step="1" defaultValue={product?.stock} className="field mt-2" /></label>
+        <label className="text-sm">Status<select name="productStatus" defaultValue={product?.productStatus || 'ACTIVE'} className="field mt-2"><option value="ACTIVE">Active</option><option value="DRAFT">Draft</option><option value="ARCHIVED">Archived</option></select></label>
+        <label className="text-sm">Image URL<input name="imageUrl" maxLength={2048} defaultValue={product?.imageUrl} className="field mt-2" /></label>
+        <label className="text-sm md:col-span-2">Description<textarea name="description" defaultValue={product?.description} className="field mt-2 min-h-28" /></label>
+        <label className="flex items-center gap-2 text-sm md:col-span-2"><input type="checkbox" name="featured" defaultChecked={product?.featured} /> Feature on the home page</label>
+      </fieldset>
+      <RequestState error={error} />
+      <div className="mt-7 flex gap-3 border-t border-line pt-6"><button disabled={busy} className="btn-primary"><Save size={16} />{busy ? 'Saving…' : 'Save product'}</button><Link to="/admin/products" className="btn-outline">Cancel</Link></div>
+    </form>
+  )
 }

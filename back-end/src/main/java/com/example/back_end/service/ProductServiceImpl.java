@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.back_end.model.Product;
 import com.example.back_end.model.Product.ProductStatus;
 import com.example.back_end.repository.ProductRepository;
+import com.example.back_end.repository.OrderItemRepository;
+import com.example.back_end.model.Brand;
+import com.example.back_end.model.Category;
 
 @Service
 @Transactional(readOnly = true)
@@ -18,8 +21,16 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository) {
+    private final BrandService brands;
+    private final CategoryService categories;
+    private final OrderItemRepository orderItems;
+
+    public ProductServiceImpl(ProductRepository productRepository, BrandService brands,
+                              CategoryService categories, OrderItemRepository orderItems) {
         this.productRepository = productRepository;
+        this.brands = brands;
+        this.categories = categories;
+        this.orderItems = orderItems;
     }
 
     // function create
@@ -29,8 +40,8 @@ public class ProductServiceImpl implements ProductService {
         product.setId(null);
         product.setSku(text(product.getSku(), "Product sku").toUpperCase(Locale.ROOT));
         product.setName(text(product.getName(), "Product name"));
-        product.setBrand(required(product.getBrand(), "Product brand"));
-        product.setCategory(required(product.getCategory(), "Product category"));
+        product.setBrand(brand(product.getBrand()));
+        product.setCategory(category(product.getCategory()));
         product.setPrice(nonNegative(product.getPrice(), "Product price"));
         product.setStock(nonNegative(product.getStock(), "Product stock"));
         product.setProductStatus(product.getProductStatus() == null ? ProductStatus.DRAFT : product.getProductStatus());
@@ -57,15 +68,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product updateProduct(Long id, Product product) {
-        Product existing = getProductById(id);
+        Product existing = lockProduct(id);
         String sku = text(product.getSku(), "Product sku").toUpperCase(Locale.ROOT);
 
         checkUnique(sku, existing.getSku());
 
         existing.setSku(sku);
         existing.setName(text(product.getName(), "Product name"));
-        existing.setBrand(required(product.getBrand(), "Product brand"));
-        existing.setCategory(required(product.getCategory(), "Product category"));
+        existing.setBrand(brand(product.getBrand()));
+        existing.setCategory(category(product.getCategory()));
         existing.setPrice(nonNegative(product.getPrice(), "Product price"));
         existing.setDescription(optionalText(product.getDescription()));
         existing.setImageUrl(optionalText(product.getImageUrl()));
@@ -79,7 +90,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void deleteProduct(Long id) {
-        productRepository.delete(getProductById(id));
+        Product product = lockProduct(id);
+        if (orderItems.existsByProductId(id)) {
+            product.setProductStatus(ProductStatus.ARCHIVED);
+        } else {
+            productRepository.delete(product);
+        }
     }
 
     private void checkUnique(String sku, String oldSku) {
@@ -99,11 +115,19 @@ public class ProductServiceImpl implements ProductService {
         return value == null ? null : value.trim();
     }
 
-    private <T> T required(T value, String field) {
-        if (value == null) {
-            throw new IllegalArgumentException(field + " is require.");
-        }
-        return value;
+    private Product lockProduct(Long id) {
+        return productRepository.lockAllById(List.of(id)).stream().findFirst()
+                .orElseThrow(() -> new NoSuchElementException("Product was not found"));
+    }
+
+    private Brand brand(Brand brand) {
+        if (brand == null || brand.getId() == null) throw new IllegalArgumentException("Choose a brand");
+        return brands.getBrandById(brand.getId());
+    }
+
+    private Category category(Category category) {
+        if (category == null || category.getId() == null) throw new IllegalArgumentException("Choose a category");
+        return categories.getCategoryById(category.getId());
     }
 
     private BigDecimal nonNegative(BigDecimal value, String field) {
