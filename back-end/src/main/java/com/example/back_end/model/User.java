@@ -27,6 +27,9 @@ public class User {
 
     private String role;
 
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean active = true;
+
     // Getter and Setter for ID
     public Long getId() {
         return id;
@@ -60,8 +63,17 @@ public class User {
         return passwordHash;
     }
 
+    @JsonProperty("password")
     public void setPassword(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     // Getter and Setter for Role

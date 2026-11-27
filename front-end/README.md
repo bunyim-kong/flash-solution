@@ -16,7 +16,7 @@ React frontend for the Lumière cosmetics shop. It includes the customer storefr
 
 - Node.js 18 or newer
 - npm
-- Lumière backend running on port `8080` when using the API
+- Lumière backend running on port `8080` by default
 
 ## Installation
 
@@ -39,13 +39,14 @@ On Windows Command Prompt, use:
 copy .env.example .env
 ```
 
-The default API URL in `.env` is:
+The default API configuration uses the Vite proxy:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8080/api
+VITE_API_BASE_URL=/api
+API_PROXY_TARGET=http://localhost:8080
 ```
 
-Change it if the backend runs at a different address.
+Set `API_PROXY_TARGET` if Spring runs at a different address. Use the relative `/api` path so the browser sends its session cookie to the same origin.
 
 ## Run Instructions
 
@@ -70,6 +71,7 @@ The generated production files are placed in `dist/`.
 
 ## Notes
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 The admin area is included for interface and API analysis. Authentication and authorization are not implemented; the routes are not protected. Add Spring Security and role-based authorization in the backend before using a real admin account.
 
@@ -121,11 +123,3 @@ The existing local SVG product illustrations remain demo assets. Replace them wi
 
 ## Real product images
 The demo catalogue now uses product packshot image URLs for the sample products (Dior Capture Youth Glow Booster, Rare Beauty Soft Pinch Liquid Blush, Fenty Beauty Pro Filt'r Foundation, Rouge Dior lipstick, The Ordinary Niacinamide serum, CeraVe Hydrating Facial Cleanser, Miss Dior Eau de Parfum, Beauty of Joseon Relief Sun, and Laneige Lip Sleeping Mask). Product cards, product details, admin thumbnails and homepage featured imagery use these catalogue images. Images are loaded from third-party brand/retailer image hosts, so an image host may change or block external access. For production, obtain permission or use image assets supplied/licensed by the brands or distributors and host them on your own server.
-
-
-## V19 Sage & Pearl colour correction
-
-The interface uses the Sage & Pearl palette consistently. Purple/lavender theme values from the previous version have been replaced with sage, olive, and warm pearl tones.
-=======
-The API client is located at `src/services/api.js`. Some storefront features still use sample data or browser local storage and are not fully connected to the backend.
->>>>>>> 8d65ef4 (feat: add 2 different readme on both front-end and back-end)

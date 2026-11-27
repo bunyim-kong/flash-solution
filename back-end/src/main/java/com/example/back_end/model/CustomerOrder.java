@@ -31,13 +31,13 @@ public class CustomerOrder {
     @Column(name = "total_amount", precision = 12, scale = 2)
     private BigDecimal total_amount;
 
-    @Column (name="customer_name", nullable = false, length = 30)
+    @Column (name="customer_name", nullable = false, length = 150)
     private String customer_name;
 
     @Column (name="customer_email", nullable = false)
     private String customer_email;
 
-    @Column(name = "phone_number", length = 10, nullable = false)
+    @Column(name = "phone_number", length = 32, nullable = false)
     private String phone_number;
 
     @Column (nullable = false)

@@ -1,6 +1,6 @@
 # Lumière Backend
 
-Spring Boot REST API for the Lumière cosmetics shop. It manages products, brands, categories, users, customer orders, and order items.
+Spring Boot REST API for the Lumière cosmetics shop. It manages the catalogue, sessions, carts, saved products, accounts, and orders.
 
 ## Technologies
 
@@ -82,6 +82,12 @@ To use a different username or password, update `src/main/resources/application.
 
 Hibernate uses `ddl-auto: update` by default, so the tables are created or updated automatically when the backend starts.
 
+## First Run
+
+Set `LUMIERE_ADMIN_EMAIL` and `LUMIERE_ADMIN_PASSWORD` in the backend process environment before the first start. The backend creates this account if no administrator exists. Use a password of at least eight characters. After the account is created, remove the bootstrap password from the process environment.
+
+Set `LUMIERE_SEED_CATALOGUE=true` for a local sample catalogue. The seed runs only when the product table is empty. You can also add brands, categories, and products in the admin portal. Open `/admin` in the frontend to sign in.
+
 ## Run Instructions
 
 Start the API on Linux or macOS:
@@ -127,3 +133,13 @@ mvnw.cmd test
 ## API Documentation
 
 The Word API reference is available at `../docs/Lumiere_API_Documentation.docx`.
+
+## Storefront API
+
+- `/api/products`, `/api/brands`, and `/api/categories` serve the public catalogue. Catalogue writes and management views require an administrator.
+- `/api/auth/register`, `/api/auth/login`, `/api/auth/me`, and `/api/auth/logout` manage the browser session.
+- `/api/cart` stores the guest bag in the session and shares the signed-in bag and saved products across devices. Signing in merges the guest selection into the account.
+- `POST /api/orders` places a cash-on-delivery order. It uses server prices, reserves stock, saves the order and its items, and clears the bag in one transaction.
+- `GET /api/orders/my` returns the signed-in customer's orders. `GET /api/admin/orders` and `/api/users` require an administrator.
+
+The frontend development and preview servers proxy `/api` to Spring. For calls outside the frontend, send `X-Lumiere-Request: 1` with writes and preserve the session cookie for authenticated requests.

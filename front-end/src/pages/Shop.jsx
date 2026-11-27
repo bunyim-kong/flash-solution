@@ -11,10 +11,10 @@ export default function Shop() {
   const [sort, setSort] = useState('featured')
   const brand = params.get('brand') || 'All'
   const active = params.get('category') || 'All'
-  const selectBrand = (value) => {
+  const selectFilter = (key, value) => {
     const next = new URLSearchParams(params)
-    if (value === 'All') next.delete('brand')
-    else next.set('brand', value)
+    if (value === 'All') next.delete(key)
+    else next.set(key, value)
     setParams(next)
   }
   const filtered = useMemo(() => {
@@ -22,6 +22,7 @@ export default function Shop() {
       (active === 'All' || p.category === active) &&
       (brand === 'All' || p.brand === brand) &&
       `${p.name} ${p.brand}`.toLowerCase().includes(query.toLowerCase()))
+    if (sort === 'featured') list.sort((a, b) => Number(b.featured) - Number(a.featured))
     if (sort === 'low') list.sort((a,b) => a.price-b.price)
     if (sort === 'high') list.sort((a,b) => b.price-a.price)
     if (sort === 'name') list.sort((a,b) => a.name.localeCompare(b.name))

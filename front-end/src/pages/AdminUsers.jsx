@@ -88,10 +88,19 @@ export default function AdminUsers() {
         <label className="text-xs font-semibold text-ink">Password<input required minLength="6" type="password" className="field mt-2 text-sm" value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} placeholder="At least 6 characters"/></label>
         <label className="text-xs font-semibold text-ink">Role<select className="field mt-2 text-sm" value={form.role} onChange={event => setForm({ ...form, role: event.target.value })}><option value="Admin">Admin</option><option value="Customer">Customer</option></select></label>
       </div>
-      <div className="mt-5 flex flex-wrap gap-3"><button className="btn-primary">Save account</button><button type="button" onClick={() => setShowForm(false)} className="btn-outline">Cancel</button></div>
-    </form>}
 
-    {message && <p className="mt-4 rounded-xl bg-cream p-4 text-sm text-sage">{message}</p>}
+      {showForm && (
+        <form onSubmit={addUser} className="mt-6 rounded-2xl border border-line bg-white p-6">
+          <h2 className="font-display text-2xl text-wine">Add an account</h2>
+          <fieldset disabled={busy} className="mt-5 grid gap-4 sm:grid-cols-2">
+            <label className="text-sm">Full name<input name="name" required maxLength={150} className="field mt-2" /></label>
+            <label className="text-sm">Email address<input name="email" type="email" required maxLength={255} className="field mt-2" /></label>
+            <label className="text-sm">Initial password<input name="password" type="password" autoComplete="new-password" required minLength={8} className="field mt-2" /></label>
+            <label className="text-sm">Role<select name="role" className="field mt-2"><option value="CUSTOMER">Customer</option><option value="ADMIN">Admin</option></select></label>
+            <div className="flex flex-wrap gap-3"><button className="btn-primary">Save account</button><button type="button" onClick={() => setShowForm(false)} className="btn-outline">Cancel</button></div>
+          </fieldset>
+        </form>
+      )}
 
     <div className="mt-7"><label className="relative block w-full max-w-xl"><Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted"/><input className="field !h-12 !min-h-12 !rounded-xl !pl-11 !pr-4 text-sm leading-normal" placeholder="Search name, email or role" value={query} onChange={event => setQuery(event.target.value)}/></label></div>
     <div className="mt-5 overflow-hidden rounded-2xl border border-line bg-white">

@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -37,6 +38,14 @@ public class ApiExceptionHandler {
                 "The request conflicts with existing or related data",
                 request
         );
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    ResponseEntity<ApiError> handleStatus(
+            ResponseStatusException exception,
+            HttpServletRequest request
+    ) {
+        return response(HttpStatus.valueOf(exception.getStatusCode().value()), exception.getReason(), request);
     }
 
     private ResponseEntity<ApiError> response(

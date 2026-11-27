@@ -1,6 +1,10 @@
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ShoppingBag, Check } from 'lucide-react'
-import { useShop } from '../context/ShopContext'
+import { useCallback } from 'react'
+import RequestState from '../components/RequestState'
+import { useRequest } from '../services/useRequest'
+import { productApi } from '../services/api'
+import { displayProduct, useShop } from '../context/ShopContext'
 export default function ProductDetail() {
   const { id } = useParams()
   const { products, addToCart, catalogLoading } = useShop()

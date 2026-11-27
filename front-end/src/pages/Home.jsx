@@ -8,9 +8,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useShop } from "../context/ShopContext";
+import RequestState from "../components/RequestState";
 import ProductCard from "../components/ProductCard";
 
-const categories = [
+const categoryTiles = [
   {
     name: "Skincare",
     image: "/images/serum.svg",
@@ -123,7 +124,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-3">
-          {categories.map((item) => (
+          {categories.slice(0, 3).map((category) => ({ ...categoryTiles[0], ...categoryTiles.find((tile) => tile.name === category.name), name: category.name, description: category.description || categoryTiles.find((tile) => tile.name === category.name)?.description })).map((item) => (
             <Link
               key={item.name}
               to={`/shop?category=${encodeURIComponent(item.name)}`}
@@ -220,14 +221,7 @@ export default function Home() {
             love.
           </p>
           <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6 md:gap-4">
-            {[
-              ["Dior", "DIOR"],
-              ["Rare Beauty", "rare beauty"],
-              ["Fenty Beauty", "FENTY"],
-              ["The Ordinary", "The Ordinary"],
-              ["CeraVe", "CeraVe"],
-              ["Laneige", "LANEIGE"],
-            ].map(([name, wordmark]) => (
+            {brands.slice(0, 6).map(({ name }) => (
               <Link
                 key={name}
                 to={`/shop?brand=${encodeURIComponent(name)}`}
@@ -236,11 +230,9 @@ export default function Home() {
                 <span
                   className={`font-display text-xl tracking-wide text-ink/70 transition group-hover:text-wine ${name === "Fenty Beauty" ? "font-sans text-base font-semibold tracking-[.18em]" : ""} ${name === "Laneige" ? "font-sans text-lg font-semibold tracking-[.12em]" : ""}`}
                 >
-                  {wordmark}
-                </span>
-                <span className="mt-2 text-[9px] font-semibold uppercase tracking-[.18em] text-sage">
                   {name}
                 </span>
+
               </Link>
             ))}
           </div>

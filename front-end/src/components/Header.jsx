@@ -15,7 +15,7 @@ import { useShop } from "../context/ShopContext";
 export default function Header() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const { cart } = useShop();
+  const { cart, account } = useShop();
   const count = cart.reduce((sum, item) => sum + item.quantity, 0);
   const links = [
     { to: "/", label: "Home", active: location.pathname === "/" },
@@ -33,7 +33,7 @@ export default function Header() {
     <header className="sticky top-0 z-40 border-b border-line bg-[#FBF8F2]/95 backdrop-blur">
       <div className="hidden items-center justify-center gap-3 bg-wine px-4 py-2.5 text-[11px] font-medium tracking-wide text-white sm:flex">
         <Truck size={15} />
-        <span>Free shipping on orders over $50</span>
+        <span>Cash on delivery available</span>
         <span className="mx-3 text-white/40">|</span>
         <Gift size={15} />
         <span>New arrivals: Discover our latest beauty picks</span>
@@ -77,7 +77,7 @@ export default function Header() {
             <Search size={20} />
           </Link>
           <Link
-            to="/login"
+            to={account ? "/orders" : "/login"}
             aria-label="Account"
             className="hidden rounded-full p-2 text-wine transition hover:bg-cream sm:block"
           >
@@ -118,11 +118,12 @@ export default function Header() {
           ))}
           <Link
             onClick={() => setOpen(false)}
-            to="/login"
+            to={account ? "/orders" : "/login"}
             className="rounded-lg px-3 py-3 text-sm text-ink/80"
           >
             My Account
           </Link>
+          <Link to="/saved" onClick={() => setOpen(false)} className="rounded-lg px-3 py-3 text-sm text-ink/80">Saved products</Link>
         </nav>
       )}
     </header>

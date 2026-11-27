@@ -15,6 +15,9 @@ import com.example.back_end.model.Category;
 import com.example.back_end.repository.BrandRepository;
 import com.example.back_end.repository.CategoryRepository;
 import com.example.back_end.repository.ProductRepository;
+import com.example.back_end.repository.OrderItemRepository;
+import com.example.back_end.model.Brand;
+import com.example.back_end.model.Category;
 
 @Service
 @Transactional(readOnly = true)
@@ -68,7 +71,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product updateProduct(Long id, Product product) {
-        Product existing = getProductById(id);
+        Product existing = lockProduct(id);
         String sku = text(product.getSku(), "Product sku").toUpperCase(Locale.ROOT);
 
         checkUnique(sku, existing.getSku());
@@ -90,7 +93,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void deleteProduct(Long id) {
-        productRepository.delete(getProductById(id));
+        Product product = lockProduct(id);
+        if (orderItems.existsByProductId(id)) {
+            product.setProductStatus(ProductStatus.ARCHIVED);
+        } else {
+            productRepository.delete(product);
+        }
     }
 
     private void checkUnique(String sku, String oldSku) {

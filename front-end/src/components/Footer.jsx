@@ -60,6 +60,7 @@ export default function Footer() {
             >
               My orders
             </Link>
+            <Link to="/saved" className="hover:text-white">Saved products</Link>
           </div>
         </div>
         <div>

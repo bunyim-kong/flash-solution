@@ -1,4 +1,4 @@
-import { NavLink, Outlet, Link } from "react-router-dom";
+import { NavLink, Outlet, Link, Navigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -6,8 +6,18 @@ import {
   ArrowLeft,
   Sparkles,
   Users,
+  Tags,
+  ShoppingBag,
 } from "lucide-react";
+import { useShop } from "../context/ShopContext";
+import RequestState from "./RequestState";
+
 export default function AdminLayout() {
+  const { account, accountLoading } = useShop();
+  const location = useLocation();
+  if (accountLoading) return <main className="container-page py-12"><RequestState loading /></main>;
+  if (!account) return <Navigate to="/login" state={{ next: location.pathname }} replace />;
+  if (account.role.toUpperCase() !== "ADMIN") return <main className="container-page py-12"><h1 className="font-display text-4xl">Administrator access required</h1><Link to="/" className="btn-outline mt-6">Back to store</Link></main>;
   const item = ({ isActive }) =>
     `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${isActive ? "bg-wine text-white shadow-sm" : "text-ink/65 hover:bg-cream hover:text-wine"}`;
   return (
@@ -30,6 +40,8 @@ export default function AdminLayout() {
           <NavLink to="/admin/users" className={item}>
             <Users size={17} /> User management
           </NavLink>
+          <NavLink to="/admin/catalogue" className={item}><Tags size={17} /> Brands and categories</NavLink>
+          <NavLink to="/admin/orders" className={item}><ShoppingBag size={17} /> Orders</NavLink>
         </nav>
         <div className="absolute bottom-6 left-5 right-5">
           <Link
@@ -45,7 +57,7 @@ export default function AdminLayout() {
           <div>
             <p className="text-sm font-semibold text-wine">Admin workspace</p>
             <p className="text-xs text-muted">
-              Lumière Beauty · Demo administration
+              Lumière Beauty
             </p>
           </div>
           <Link
@@ -55,6 +67,13 @@ export default function AdminLayout() {
             <Store size={16} /> View store
           </Link>
         </header>
+        <nav className="flex flex-wrap gap-1 border-b border-line p-2 lg:hidden">
+          <NavLink end to="/admin" className={item}>Overview</NavLink>
+          <NavLink to="/admin/products" className={item}>Products</NavLink>
+          <NavLink to="/admin/catalogue" className={item}>Brands and categories</NavLink>
+          <NavLink to="/admin/orders" className={item}>Orders</NavLink>
+          <NavLink to="/admin/users" className={item}>Users</NavLink>
+        </nav>
         <main className="p-5 md:p-9">
           <Outlet />
         </main>
