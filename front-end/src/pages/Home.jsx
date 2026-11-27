@@ -33,8 +33,8 @@ const categoryTiles = [
 ];
 
 export default function Home() {
-  const { products, catalogLoading, catalogError, reloadCatalog } = useShop();
-  const featured = products.filter((p) => p.status === "Active").slice(0, 4);
+  const { products, brands, categories, catalogue } = useShop();
+  const featured = products.filter((product) => product.featured).slice(0, 4);
   return (
     <>
       <section className="hero-luxe relative overflow-hidden">
@@ -168,13 +168,14 @@ export default function Home() {
             Shop all <ArrowRight size={16} />
           </Link>
         </div>
-        {catalogError && <div className="container-page mt-8 flex items-center justify-between gap-4 rounded-xl text-sm text-rose"><span>{catalogError}</span><button onClick={reloadCatalog} className="font-semibold underline">Try again</button></div>}
+        <div className="container-page"><RequestState {...catalogue} />
+          {!catalogue.loading && !catalogue.error && !featured.length && <p className="mt-5 text-sm text-muted">No featured products yet.</p>}
+        </div>
         <div className="container-page mt-9 grid grid-cols-2 gap-x-5 gap-y-9 md:grid-cols-4">
-          {!catalogLoading && featured.map((p) => (
+          {featured.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
-        {catalogLoading && <p className="container-page mt-8 text-center text-sm text-muted">Loading featured products…</p>}
         <div className="container-page mt-8 text-center md:hidden">
           <Link to="/shop" className="btn-outline">
             Explore all products

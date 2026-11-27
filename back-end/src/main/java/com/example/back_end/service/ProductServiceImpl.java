@@ -16,8 +16,6 @@ import com.example.back_end.repository.BrandRepository;
 import com.example.back_end.repository.CategoryRepository;
 import com.example.back_end.repository.ProductRepository;
 import com.example.back_end.repository.OrderItemRepository;
-import com.example.back_end.model.Brand;
-import com.example.back_end.model.Category;
 
 @Service
 @Transactional(readOnly = true)
@@ -26,14 +24,17 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
+    private final OrderItemRepository orderItems;
 
     public ProductServiceImpl(
             ProductRepository productRepository,
             BrandRepository brandRepository,
-            CategoryRepository categoryRepository) {
+            CategoryRepository categoryRepository,
+            OrderItemRepository orderItems) {
         this.productRepository = productRepository;
         this.brandRepository = brandRepository;
         this.categoryRepository = categoryRepository;
+        this.orderItems = orderItems;
     }
 
     // function create
@@ -116,6 +117,11 @@ public class ProductServiceImpl implements ProductService {
 
     private String optionalText(String value) {
         return value == null ? null : value.trim();
+    }
+
+    private Product lockProduct(Long id) {
+        return productRepository.lockAllById(List.of(id)).stream().findFirst()
+                .orElseThrow(() -> new NoSuchElementException("Product was not found"));
     }
 
     private Brand findBrand(Brand brand) {

@@ -67,4 +67,4 @@ export default function ProductList() {
 
 ## Important for the current project
 
-The storefront now loads products, brands, and categories through this Axios service, and the admin product and user pages use real backend CRUD. Start Spring Boot before the frontend. The catalogue deliberately starts empty and shows an error if the API cannot be reached; it does not silently replace backend data with mock products. The cart is the only shop state that remains in browser local storage.
+The storefront now loads products, brands, and categories through this Axios service, and the admin product and user pages use real backend CRUD. Start Spring Boot before the frontend. The catalogue deliberately starts empty and shows an error if the API cannot be reached; it does not silently replace backend data with mock products. The cart and saved products use the same API client. The backend stores guest selections in the browser session and signed-in selections in MySQL.

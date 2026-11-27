@@ -37,7 +37,7 @@ class StoreIntegrationTests {
     }
 
     @Test
-    void guestBagBecomesAnAccountOrderAndRepeatedCheckoutDoesNotChargeStockTwice() throws Exception {
+    void guestCheckoutRequiresTheReviewedPriceAndRetriesOnlyReserveStockOnce() throws Exception {
         Long productId = sampleProduct().getId();
         MockHttpSession session = new MockHttpSession();
         mvc.perform(post("/api/cart/items/{id}", productId).session(session).header("X-Lumiere-Request", "1"))
@@ -50,9 +50,20 @@ class StoreIntegrationTests {
         String checkout = """
                 {"requestId":"%s","customerName":"Checkout Customer","customerEmail":"checkout@example.test",
                  "phoneNumber":"+8551234567","address":"1 Test Street","city":"Phnom Penh",
-                 "paymentMethod":"Cash on delivery","totalAmount":0.01}
-                """.formatted(UUID.randomUUID());
-        order(session, checkout).andExpect(status().isCreated()).andExpect(jsonPath("$.totalAmount").value(12.5));
+                 "paymentMethod":"Cash on delivery","totalAmount":0.01,
+                 "reviewedItems":[{"productId":%d,"quantity":1,"unitPrice":12.50}]}
+                """.formatted(UUID.randomUUID(), productId);
+
+        Product changed = products.getProductById(productId);
+        changed.setPrice(new BigDecimal("15.00"));
+        products.updateProduct(productId, changed);
+        order(session, checkout).andExpect(status().isConflict());
+        mvc.perform(get("/api/products/{id}", productId)).andExpect(jsonPath("$.stock").value(3));
+        mvc.perform(get("/api/cart").session(session)).andExpect(jsonPath("$.items[0].quantity").value(1));
+        mvc.perform(get("/api/orders/my").session(session)).andExpect(jsonPath("$").isEmpty());
+
+        checkout = checkout.replace("12.50", "15.00");
+        order(session, checkout).andExpect(status().isCreated()).andExpect(jsonPath("$.totalAmount").value(15));
         order(session, checkout).andExpect(status().isCreated()).andExpect(jsonPath("$.items[0].quantity").value(1));
 
         mvc.perform(get("/api/products/{id}", productId)).andExpect(jsonPath("$.stock").value(2));

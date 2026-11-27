@@ -17,7 +17,10 @@ export default function Checkout() {
     const fields = Object.fromEntries(new FormData(event.currentTarget))
     try {
       requestId.current ||= crypto.randomUUID()
-      const result = await placeOrder({ ...fields, requestId: requestId.current, paymentMethod: 'Cash on delivery' })
+      const reviewedItems = cart.map(({ id, quantity, price }) => ({ productId: id, quantity, unitPrice: price }))
+      const result = await placeOrder({
+        ...fields, requestId: requestId.current, paymentMethod: 'Cash on delivery', reviewedItems,
+      })
       if (result) setOrder(result)
     } catch (failure) {
       setError(errorMessage(failure))
@@ -34,7 +37,7 @@ export default function Checkout() {
   if (cartLoading || (cartError && !cart.length)) return (
     <main className="container-page py-12"><h1 className="font-display text-4xl">Checkout</h1><RequestState loading={cartLoading} error={cartError} reload={reloadCart} /></main>
   )
-  if (!cart.length) return <main className="container-page py-24 text-center"><h1 className="font-display text-3xl">Your bag is empty</h1><Link to="/shop" className="btn-primary mt-6">Shop now</Link></main>
+  if (!cart.length) return <main className="container-page py-24 text-center"><h1 className="font-display text-3xl">Your bag is empty</h1><RequestState error={error} /><Link to="/shop" className="btn-primary mt-6">Shop now</Link></main>
   if (!account) return <main className="container-page py-24 text-center"><h1 className="font-display text-3xl">Sign in to check out</h1><Link to="/login" state={{ next: '/checkout' }} className="btn-primary mt-6">Sign in</Link></main>
 
   return (
@@ -49,7 +52,7 @@ export default function Checkout() {
           <label className="block text-sm">Delivery address<input name="address" autoComplete="street-address" required maxLength={170} className="field mt-2" /></label>
           <label className="block text-sm">City<input name="city" autoComplete="address-level2" required maxLength={80} className="field mt-2" /></label>
           <p className="text-sm text-muted">Pay by cash on delivery.</p>
-          <RequestState error={error} />
+          <RequestState error={cartError || error} reload={cartError ? reloadCart : undefined} />
           {error && <Link to="/cart" className="block text-sm font-semibold text-wine">Review your bag</Link>}
           <button className="btn-primary w-full">{cartBusy ? 'Please wait…' : 'Place order'}</button>
         </fieldset>

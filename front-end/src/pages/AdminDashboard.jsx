@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
 import { Package, AlertTriangle, Plus, ArrowUpRight } from "lucide-react";
-import { useShop } from "../context/ShopContext";
+import RequestState from "../components/RequestState";
+import { useAdminProducts } from "../services/useAdminProducts";
 export default function AdminDashboard() {
-  const { products } = useShop();
+  const request = useAdminProducts();
+  if (request.loading || request.error) return <RequestState {...request} />;
+  const products = request.data || [];
   const active = products.filter((p) => p.status === "Active").length;
   const low = products.filter((p) => p.stock < 10).length;
   const value = products.reduce((s, p) => s + p.price * p.stock, 0);

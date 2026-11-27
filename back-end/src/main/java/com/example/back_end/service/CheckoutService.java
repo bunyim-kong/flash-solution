@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,7 +24,8 @@ import java.util.stream.Collectors;
 @Service
 public class CheckoutService {
     public record Request(UUID requestId, String customerName, String customerEmail, String phoneNumber,
-                          String address, String city, String paymentMethod) {}
+                          String address, String city, String paymentMethod, List<ReviewedItem> reviewedItems) {}
+    public record ReviewedItem(Long productId, Integer quantity, BigDecimal unitPrice) {}
     public record Item(String sku, String name, int quantity, BigDecimal unitPrice, BigDecimal lineTotal) {}
     public record Order(Long id, String orderNumber, String status, BigDecimal totalAmount,
                         String customerName, String customerEmail, String phoneNumber, String address,
@@ -51,9 +53,15 @@ public class CheckoutService {
         if (previous.isPresent()) return toViews(List.of(previous.get())).getFirst();
 
         Map<Long, Integer> quantities = selection.quantities();
-        if (quantities.isEmpty()) throw new IllegalArgumentException("Your bag is empty");
+        if (quantities.isEmpty()) {
+            if (request.reviewedItems() != null && !request.reviewedItems().isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Your bag is now empty");
+            }
+            throw new IllegalArgumentException("Your bag is empty");
+        }
         List<Product> catalogue = products.lockAllById(quantities.keySet());
-        // Deleted products are also omitted from the cart response.
+        checkReviewedItems(request.reviewedItems(), catalogue, quantities);
+        // Older checkout clients can still submit their current server-side bag.
         quantities.keySet().retainAll(catalogue.stream().map(Product::getId).collect(Collectors.toSet()));
         if (quantities.isEmpty()) throw new IllegalArgumentException("Your bag is empty");
 
@@ -88,12 +96,37 @@ public class CheckoutService {
         order.setOrderNumber(number);
         order.setStatus("Pending");
         order.setCustomerName(required(request.customerName(), "Name", 150));
-        order.setCustomerEmail(required(request.customerEmail(), "Email", 255));
+        String email = required(request.customerEmail(), "Email", 255);
+        if (!email.matches("[^\\s@]+@[^\\s@]+")) {
+            throw new IllegalArgumentException("Enter a valid email address");
+        }
+        order.setCustomerEmail(email);
         order.setPhoneNumber(required(request.phoneNumber(), "Phone number", 32));
         order.setAddress(required(request.address(), "Address", 170) + ", " + required(request.city(), "City", 80));
         order.setMapLink("");
         order.setPaymentMethod(payment);
         return order;
+    }
+
+    private void checkReviewedItems(List<ReviewedItem> reviewed, List<Product> catalogue, Map<Long, Integer> quantities) {
+        if (reviewed == null) return;
+
+        Map<Long, ReviewedItem> byProduct = new HashMap<>();
+        for (ReviewedItem item : reviewed) {
+            if (item == null || item.productId() == null || item.quantity() == null || item.unitPrice() == null
+                    || byProduct.putIfAbsent(item.productId(), item) != null) {
+                throw new IllegalArgumentException("Invalid checkout items");
+            }
+        }
+
+        boolean matches = byProduct.size() == catalogue.size() && catalogue.stream().allMatch(product -> {
+            ReviewedItem item = byProduct.get(product.getId());
+            return item != null && item.quantity().equals(quantities.get(product.getId()))
+                    && item.unitPrice().compareTo(product.getPrice()) == 0;
+        });
+        if (!matches) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Your bag changed. Review the updated items and total before placing your order.");
+        }
     }
 
     private OrderItem reserve(CustomerOrder order, Product product, int quantity) {
